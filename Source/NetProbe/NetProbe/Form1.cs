@@ -93,9 +93,11 @@ namespace NetProbe
             {
                 int nReceived = mainSocket.EndReceive(ar);
 
+                //showData(byteData); Function used to show brut frames now parsing data to extract IP Header info
+
                 //Analyze the bytes received...
-                //ParseData(byteData, nReceived);
-                showData(byteData);
+                ParseData(byteData, nReceived);
+                
                 if (bContinueCapturing)
                 {
                     byteData = new byte[4096];
@@ -114,26 +116,71 @@ namespace NetProbe
                 MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private string showData(byte[] frame)
+        private void ParseData(byte[] byteData, int nReceived)
         {
             TreeNode rootNode = new TreeNode();
-            String Data = null;
+
+            //Since all protocol packets are encapsulated in the IP datagram
+            //so we start by parsing the IP header and see what protocol data
+            //is being carried by it
+            IPHeader ipHeader = new IPHeader(byteData, nReceived);
+
+            TreeNode ipNode = MakeIPTreeNode(ipHeader);
+            rootNode.Nodes.Add(ipNode);
+
             AddTreeNode addTreeNode = new AddTreeNode(OnAddTreeNode);
 
-            rootNode.Text = Convert.ToString(j++);
-            
-            for (int i = 0; i < frame.Length; i += 1)
-            {
-                Data += frame[i];
-            }
-            rootNode.Nodes.Add(Data);
+            rootNode.Text = ipHeader.SourceAddress.ToString() + "-" +
+            ipHeader.DestinationAddress.ToString();
 
             //Thread safe adding of the nodes
             treeView1.Invoke(addTreeNode, new object[] { rootNode });
-            return Data;
-
         }
 
+        //Helper function which returns the information contained in the IP header as a
+        //tree node
+        private TreeNode MakeIPTreeNode(IPHeader ipHeader)
+        {
+            TreeNode ipNode = new TreeNode();
+
+            ipNode.Text = "IP";
+            ipNode.Nodes.Add("Ver: " + ipHeader.Version);
+            ipNode.Nodes.Add("Header Length: " + ipHeader.HeaderLength);
+            //ipNode.Nodes.Add ("Differntiated Services: " + ipHeader.DifferentiatedServices);
+            ipNode.Nodes.Add("Total Length: " + ipHeader.TotalLength);
+            //ipNode.Nodes.Add("Identification: " + ipHeader.Identification);
+            //ipNode.Nodes.Add("Flags: " + ipHeader.Flags);
+            // ipNode.Nodes.Add("Fragmentation Offset: " + ipHeader.FragmentationOffset);
+            //ipNode.Nodes.Add("Time to live: " + ipHeader.TTL);
+            switch (ipHeader.ProtocolType)
+            {
+                case Protocol.TCP:
+                    ipNode.Nodes.Add("Protocol: " + "TCP");
+                    break;
+                case Protocol.UDP:
+                    ipNode.Nodes.Add("Protocol: " + "UDP");
+                    break;
+                case Protocol.Unknown:
+                    ipNode.Nodes.Add("Protocol: " + "Unknown");
+                    break;
+            }
+            //ipNode.Nodes.Add("Checksum: " + ipHeader.Checksum);
+            ipNode.Nodes.Add("Source: " + ipHeader.SourceAddress.ToString());
+            ipNode.Nodes.Add("Destination: " + ipHeader.DestinationAddress.ToString());
+            ipNode.Nodes.Add("Data: " + extractIPData(ipHeader));
+
+            return ipNode;
+        }
+        //Extracting the data from the IP Data bytes Array and converting them into String
+        private string extractIPData(IPHeader ipHeader)
+        {
+            String Data = null;
+            for (int i = 0; i < ipHeader.MessageLength; i += 1)
+            {
+                Data += ipHeader.Data[i];
+            }
+            return Data;
+        }
         private void OnAddTreeNode(TreeNode node)
         {
             treeView1.Nodes.Add(node);
