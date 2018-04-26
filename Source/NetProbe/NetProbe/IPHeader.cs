@@ -8,6 +8,8 @@ namespace NetProbe
 {
     public class IPHeader
     {
+        //PAcket
+
         //IP Header fields
         private byte      byVersionAndHeaderLength;   //Eight bits for version and header length
         private byte      byDifferentiatedServices;    //Eight bits for differentiated services (TOS)
@@ -21,10 +23,12 @@ namespace NetProbe
         private uint      uiSourceIPAddress;          //Thirty two bit source IP Address
         private uint      uiDestinationIPAddress;     //Thirty two bit destination IP Address
         //End IP Header fields
-        
+        //Encapsulated IP data fields
         private byte      byHeaderLength;             //Header length
         private byte[]    byIPData = new byte[4096];  //Data carried by the datagram
+        //End Encapsulated IP data fields
 
+        //End Packet
 
         public IPHeader(byte[] byBuffer, int nReceived)
         {
@@ -43,7 +47,7 @@ namespace NetProbe
                 //The next eight bits contain the Differentiated services
                 byDifferentiatedServices = binaryReader.ReadByte();
 
-                //Next eight bits hold the total length of the datagram
+                //Next eight sixteen bits hold the total length of the datagram
                 usTotalLength = (ushort)IPAddress.NetworkToHostOrder(binaryReader.ReadInt16());
 
                 //Next sixteen have the identification bytes
@@ -71,15 +75,15 @@ namespace NetProbe
 
                 byHeaderLength = byVersionAndHeaderLength;
                 //The last four bits of the version and header length field contain the
-                //header length, we perform some simple binary airthmatic operations to
-                //extract them
+                //header length, we perform some simple binary arithmatic operations to extract them (Rotate
+                // left 4 times then rotate right 4 times to mask the 4 MSB corresponding to version)
                 byHeaderLength <<= 4;
                 byHeaderLength >>= 4;
-                //Multiply by four to get the exact header length
+                ////Headerlength gives the number of 32 bits units, 32 bits = 4 bytes
                 byHeaderLength *= 4;
 
-                //Copy the data carried by the data gram into another array so that
-                //according to the protocol being carried in the IP datagram
+                //Copy the data carried in the datagram into another array so that we could 
+                //parse it according to the corresponding protocol.
                 Array.Copy(byBuffer, 
                            byHeaderLength,  //start copying from the end of the header
                            byIPData, 0, 
@@ -87,7 +91,7 @@ namespace NetProbe
             }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "MJsniffer", MessageBoxButtons.OK, 
+            MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, 
                 MessageBoxIcon.Error);
         }
         }
