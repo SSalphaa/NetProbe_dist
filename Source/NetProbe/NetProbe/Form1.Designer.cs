@@ -45,27 +45,30 @@
             // 
             // treeView1
             // 
+            this.treeView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.treeView1.Location = new System.Drawing.Point(12, 12);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(776, 430);
+            this.treeView1.Size = new System.Drawing.Size(894, 430);
             this.treeView1.TabIndex = 1;
             // 
             // nodeSelect
             // 
-            this.nodeSelect.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.nodeSelect.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.nodeSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.nodeSelect.FormattingEnabled = true;
-            this.nodeSelect.Location = new System.Drawing.Point(429, 476);
+            this.nodeSelect.Location = new System.Drawing.Point(561, 476);
             this.nodeSelect.Name = "nodeSelect";
-            this.nodeSelect.Size = new System.Drawing.Size(358, 24);
+            this.nodeSelect.Size = new System.Drawing.Size(342, 24);
             this.nodeSelect.TabIndex = 2;
             // 
             // Dashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 514);
+            this.ClientSize = new System.Drawing.Size(916, 514);
             this.Controls.Add(this.nodeSelect);
             this.Controls.Add(this.treeView1);
             this.Controls.Add(this.btnConnect);

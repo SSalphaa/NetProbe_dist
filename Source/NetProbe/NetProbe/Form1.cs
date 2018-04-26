@@ -149,7 +149,9 @@ namespace NetProbe
                 foreach (IPAddress ip in HosyEntry.AddressList)
                 {
                     strIP = ip.ToString();
-                    nodeSelect.Items.Add(strIP);
+                    if (!nodeSelect.Items.Contains(strIP)){ 
+                         nodeSelect.Items.Add(strIP);
+                    }
                 }
             }
             nodeSelect.Items.Add("127.0.0.1");
