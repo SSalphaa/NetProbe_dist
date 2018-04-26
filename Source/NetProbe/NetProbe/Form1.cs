@@ -105,9 +105,6 @@ namespace NetProbe
                         new AsyncCallback(OnReceive), null);
                 }
             }
-            catch (ObjectDisposedException)
-            {
-            }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -260,14 +257,19 @@ namespace NetProbe
             nodeSelect.Items.Add("127.0.0.1");
         }
 
-        private void Dashboard_FormClosing(object sender, FormClosingEventArgs e)
+        private void Dashboard_FormClosing(object sender, CancelEventArgs e)
         {
-            if (bContinueCapturing)
+            if(MessageBox.Show("You are about to quit NetProbe...Do you Confirm?", "NetProbe",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                //Close the socket if not closed before shutting off the execution window
-                mainSocket.Close();
+                if (bContinueCapturing)
+                {
+                    //Close the socket if not closed before shutting off the execution window
+                    mainSocket.Close();
+                }
             }
+            else
+                e.Cancel = true;
         }
-
     }
 }
