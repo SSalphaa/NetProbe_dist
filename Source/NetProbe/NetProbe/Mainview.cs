@@ -20,9 +20,24 @@ namespace NetProbe
 
         private void Mainview_Load(object sender, EventArgs e)
         {
+            MdiClient chld;
 
+            foreach (Control ctrl in this.Controls)
+            {
+                try
+                {
+                    chld = (MdiClient)ctrl;
+
+                    chld.BackColor = this.BackColor;
+                }
+                catch (InvalidCastException exe)
+
+                {
+
+                }
+
+            }
         }
-
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
             //Create a new Create_prjForm object instance
