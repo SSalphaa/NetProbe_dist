@@ -44,13 +44,32 @@ namespace NetProbe
             Create_prjForm f = new Create_prjForm();
             //Define Mainview as Parent Form for Create_prjForm
             f.MdiParent = this;
-            f.Text = "New Project Creation";
+            f.Text = "NetProbe :: New Project Creation";
             //Display Form
             f.Show();
             //Hide picture box and item controls and disable the menustrip control to user interactions
             this.label1.Visible=false;
             this.pictureBox1.Visible=false;
             this.menuStrip1.Enabled = false;
+        }
+
+        private void loadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Dashboard d = new Dashboard();
+            d.MdiParent = this;
+            //Display Form
+            d.Show();
+            //Hide picture box and item controls and disable the menustrip control to user interactions
+            this.label1.Visible = false;
+            this.pictureBox1.Visible = false;
+            this.fichierToolStripMenuItem.Enabled = false;
+            this.loadToolStripMenuItem.Enabled = false;
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Form f = Form.ActiveForm;
+            f.Close();
         }
     }
 }

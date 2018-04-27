@@ -35,6 +35,8 @@
             // 
             // btnConnect
             // 
+            this.btnConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnConnect.Font = new System.Drawing.Font("Alstom", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnConnect.Location = new System.Drawing.Point(12, 462);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(120, 40);
@@ -50,16 +52,15 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.treeView1.Location = new System.Drawing.Point(12, 12);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(894, 430);
+            this.treeView1.Size = new System.Drawing.Size(770, 430);
             this.treeView1.TabIndex = 1;
             // 
             // nodeSelect
             // 
-            this.nodeSelect.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.nodeSelect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.nodeSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.nodeSelect.FormattingEnabled = true;
-            this.nodeSelect.Location = new System.Drawing.Point(561, 476);
+            this.nodeSelect.Location = new System.Drawing.Point(437, 476);
             this.nodeSelect.Name = "nodeSelect";
             this.nodeSelect.Size = new System.Drawing.Size(342, 24);
             this.nodeSelect.TabIndex = 2;
@@ -68,10 +69,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(916, 514);
+            this.ClientSize = new System.Drawing.Size(792, 514);
             this.Controls.Add(this.nodeSelect);
             this.Controls.Add(this.treeView1);
             this.Controls.Add(this.btnConnect);
+            this.Location = new System.Drawing.Point(0, 3);
             this.Name = "Dashboard";
             this.Text = "Dashboard";
             this.Activated += new System.EventHandler(this.Dashboard_Activate);

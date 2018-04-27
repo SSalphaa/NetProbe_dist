@@ -259,13 +259,21 @@ namespace NetProbe
 
         private void Dashboard_FormClosing(object sender, CancelEventArgs e)
         {
-            if(MessageBox.Show("You are about to quit NetProbe...Do you Confirm?", "NetProbe",
+            if(MessageBox.Show("You are about to close the Dashboard...Do you Confirm?", "NetProbe :: Dashboard",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 if (bContinueCapturing)
                 {
                     //Close the socket if not closed before shutting off the execution window
                     mainSocket.Close();
+                }
+                //Search for active form (Parent Form : Mainview)
+                Form m = Form.ActiveForm;
+                //Set Parent Form's controls visible and enabled
+                foreach (Control c in m.Controls)
+                {
+                    c.Visible = true;
+                    c.Enabled = true;
                 }
             }
             else
