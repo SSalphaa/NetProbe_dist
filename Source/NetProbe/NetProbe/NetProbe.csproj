@@ -45,6 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Create_prjForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Create_prjForm.Designer.cs">
+      <DependentUpon>Create_prjForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Dashboard.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -61,6 +67,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TCPHeader.cs" />
+    <EmbeddedResource Include="Create_prjForm.resx">
+      <DependentUpon>Create_prjForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Dashboard.resx">
       <DependentUpon>Dashboard.cs</DependentUpon>
     </EmbeddedResource>

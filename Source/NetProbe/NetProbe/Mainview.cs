@@ -25,7 +25,17 @@ namespace NetProbe
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
-              
+            //Create a new Create_prjForm object instance
+            Create_prjForm f = new Create_prjForm();
+            //Define Mainview as Parent Form for Create_prjForm
+            f.MdiParent = this;
+            f.Text = "New Project Creation";
+            //Display Form
+            f.Show();
+            //Hide picture box and item controls and disable the menustrip control to user interactions
+            this.label1.Visible=false;
+            this.pictureBox1.Visible=false;
+            this.menuStrip1.Enabled = false;
         }
     }
 }
