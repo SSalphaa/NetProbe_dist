@@ -64,8 +64,7 @@ namespace NetProbe
                     byte[] byOut = new byte[4] { 1, 0, 0, 0 }; //Capture outgoing packets
 
                     //Activation of the reception of all packets on the selected network, the user has to be an administrator on
-                    mainSocket.IOControl(IOControlCode.ReceiveAll,              //the local machine
-                                                                                
+                    mainSocket.IOControl(IOControlCode.ReceiveAll,              //the local machine                                         
                                          byTrue,
                                          byOut);
 
@@ -76,11 +75,9 @@ namespace NetProbe
                 else
                 {
                     btnConnect.Text = "Connect";
+                    bContinueCapturing = false;
                     //To stop capturing the packets close the socket
-                    bContinueCapturing = false;    
-                    
-                    mainSocket.Disconnect(true);
-                    
+                    mainSocket.Close();
                 }
             }
             catch (Exception ex)
@@ -92,16 +89,14 @@ namespace NetProbe
         {
             try
             {
-                int nReceived = mainSocket.EndReceive(ar); //The number of bytes received in the socket
-
-                //Analyze the received packet...
-                ParseData(byteData, nReceived);
-                
                 if (bContinueCapturing)
                 {
-                    byteData = new byte[4096];
+                    int nReceived = mainSocket.EndReceive(ar); //The number of bytes received in the socket
+                    //Analyze the received packet...
+                    ParseData(byteData, nReceived);
 
-                    //Another call to BeginReceive to pursur receiving the incoming packets while the 
+                    byteData = new byte[4096];
+                    //Another call to BeginReceive to pursue receiving the incoming packets while the 
                     //received one is being parsed
                     mainSocket.BeginReceive(byteData, 0, byteData.Length, SocketFlags.None,
                         new AsyncCallback(OnReceive), null);
@@ -109,7 +104,7 @@ namespace NetProbe
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message+"here ex", "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void ParseData(byte[] byteData, int nReceived)
