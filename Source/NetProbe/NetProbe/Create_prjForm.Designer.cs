@@ -29,26 +29,28 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Create_prjForm));
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBoxName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.btn_File = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBoxFile = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.textBoxLoc = new System.Windows.Forms.TextBox();
             this.btn_Location = new System.Windows.Forms.Button();
             this.btn_Return = new System.Windows.Forms.Button();
             this.btn_Create = new System.Windows.Forms.Button();
+            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.PrjFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
-            // textBox1
+            // textBoxName
             // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBoxName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(169, 73);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(228, 22);
-            this.textBox1.TabIndex = 0;
+            this.textBoxName.Location = new System.Drawing.Point(169, 73);
+            this.textBoxName.Name = "textBoxName";
+            this.textBoxName.Size = new System.Drawing.Size(228, 22);
+            this.textBoxName.TabIndex = 0;
             // 
             // label1
             // 
@@ -73,6 +75,7 @@
             this.btn_File.TabIndex = 2;
             this.btn_File.Text = "Browse";
             this.btn_File.UseVisualStyleBackColor = true;
+            this.btn_File.Click += new System.EventHandler(this.btn_File_Click);
             // 
             // label2
             // 
@@ -87,14 +90,14 @@
             this.label2.TabIndex = 4;
             this.label2.Text = "Project File";
             // 
-            // textBox2
+            // textBoxFile
             // 
-            this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBoxFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox2.Location = new System.Drawing.Point(169, 127);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(228, 22);
-            this.textBox2.TabIndex = 3;
+            this.textBoxFile.Location = new System.Drawing.Point(169, 127);
+            this.textBoxFile.Name = "textBoxFile";
+            this.textBoxFile.Size = new System.Drawing.Size(228, 22);
+            this.textBoxFile.TabIndex = 3;
             // 
             // label3
             // 
@@ -109,14 +112,14 @@
             this.label3.TabIndex = 7;
             this.label3.Text = "Project Location";
             // 
-            // textBox3
+            // textBoxLoc
             // 
-            this.textBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBoxLoc.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox3.Location = new System.Drawing.Point(169, 182);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(228, 22);
-            this.textBox3.TabIndex = 6;
+            this.textBoxLoc.Location = new System.Drawing.Point(169, 182);
+            this.textBoxLoc.Name = "textBoxLoc";
+            this.textBoxLoc.Size = new System.Drawing.Size(228, 22);
+            this.textBoxLoc.TabIndex = 6;
             // 
             // btn_Location
             // 
@@ -128,6 +131,7 @@
             this.btn_Location.TabIndex = 5;
             this.btn_Location.Text = "Browse";
             this.btn_Location.UseVisualStyleBackColor = true;
+            this.btn_Location.Click += new System.EventHandler(this.btn_Location_Click);
             // 
             // btn_Return
             // 
@@ -152,6 +156,11 @@
             this.btn_Create.Text = "Create Project";
             this.btn_Create.UseVisualStyleBackColor = true;
             // 
+            // PrjFileDialog
+            // 
+            this.PrjFileDialog.FileName = "PrjFile";
+            this.PrjFileDialog.RestoreDirectory = true;
+            // 
             // Create_prjForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -163,13 +172,13 @@
             this.Controls.Add(this.btn_Create);
             this.Controls.Add(this.btn_Return);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.textBox3);
+            this.Controls.Add(this.textBoxLoc);
             this.Controls.Add(this.btn_Location);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.textBoxFile);
             this.Controls.Add(this.btn_File);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.textBoxName);
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Location = new System.Drawing.Point(90, 50);
@@ -185,15 +194,17 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textBoxName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btn_File;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox textBoxFile;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.TextBox textBoxLoc;
         private System.Windows.Forms.Button btn_Location;
         private System.Windows.Forms.Button btn_Return;
         private System.Windows.Forms.Button btn_Create;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
+        private System.Windows.Forms.OpenFileDialog PrjFileDialog;
     }
 }

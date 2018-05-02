@@ -47,5 +47,41 @@ namespace NetProbe
                 e.Cancel = true;
          
         }
+        //Selecting the location folder of the project file
+        private void btn_Location_Click(object sender, EventArgs e)
+        {
+            //Create a new instance of the FolderBrowserDialog class
+
+            FolderBrowserDialog LocFolder = new FolderBrowserDialog();
+
+            //Allow the user to have the possibility to create a new Folder 
+            LocFolder.ShowNewFolderButton = true;
+
+            // Show the FolderBrowserDialog (Method that allow to select a folder)
+            // When the user is done selecting the folder and hit "OK" button.
+            if (LocFolder.ShowDialog() == DialogResult.OK)
+            {
+
+                textBoxLoc.Text = LocFolder.SelectedPath;
+
+                Environment.SpecialFolder root = LocFolder.RootFolder;
+
+            }
+        }
+
+        private void btn_File_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog PrjFileDialog = new OpenFileDialog();
+
+
+            PrjFileDialog.InitialDirectory = @"C:\Users";
+
+            PrjFileDialog.Title = "Browse Project File";
+
+            if (PrjFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                textBoxFile.Text = PrjFileDialog.FileName;
+            }
+        }
     }
 }
