@@ -30,7 +30,7 @@ namespace NetProbe
 
                     chld.BackColor = this.BackColor;
                }
-                catch (InvalidCastException exe)
+                catch (InvalidCastException)
                 {
                     //Type conversion of Label, ImageBox into MdiClient is impossible, it raises exceptions
                     //Thus, we do nothing when its raised
