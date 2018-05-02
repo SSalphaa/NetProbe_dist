@@ -77,13 +77,15 @@ namespace NetProbe
                 {
                     btnConnect.Text = "Connect";
                     //To stop capturing the packets close the socket
-                    bContinueCapturing = false;
-                    mainSocket.Close();
+                    bContinueCapturing = false;    
+                    
+                    mainSocket.Disconnect(true);
+                    
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message+"This Ex", "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void OnReceive(IAsyncResult ar)
