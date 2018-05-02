@@ -78,6 +78,7 @@
             this.Text = "Dashboard";
             this.Activated += new System.EventHandler(this.Dashboard_Activate);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Dashboard_FormClosing);
+            this.Load += new System.EventHandler(this.Dashboard_Load);
             this.ResumeLayout(false);
 
         }

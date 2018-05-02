@@ -42,7 +42,7 @@ namespace NetProbe
                 if (!bContinueCapturing)
                 {
                     //Start capturing the packets...
-
+              
                     btnConnect.Text = "Disconnect";
 
                     bContinueCapturing = true;
@@ -82,7 +82,7 @@ namespace NetProbe
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message+"This Ex", "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void OnReceive(IAsyncResult ar)
@@ -104,7 +104,7 @@ namespace NetProbe
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message+"here ex", "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void ParseData(byte[] byteData, int nReceived)
@@ -272,9 +272,15 @@ namespace NetProbe
                     c.Visible = true;
                     c.Enabled = true;
                 }
+
             }
             else
                 e.Cancel = true;
+        }
+
+        private void Dashboard_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

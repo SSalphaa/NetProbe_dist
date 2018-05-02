@@ -19,7 +19,7 @@
             }
             base.Dispose(disposing);
         }
-   
+  
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -204,6 +204,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
+            this.MdiChildActivate += new System.EventHandler(this.Mainview_childrenClosed);
 
         }
 
@@ -218,8 +219,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        public System.Windows.Forms.Label label1;
-        public System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ToolStripMenuItem dashboardToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem loadToolStripMenuItem;
