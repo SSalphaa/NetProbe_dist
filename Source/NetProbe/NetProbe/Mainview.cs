@@ -29,6 +29,7 @@ namespace NetProbe
                     chld = (MdiClient)ctrl;
 
                     chld.BackColor = this.BackColor;
+
                 }
                 catch (InvalidCastException exe)
 

@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,6 +13,7 @@ namespace NetProbe
 {
     public partial class Create_prjForm : Form
     {
+        public int NameErrCount=0;
 
         public Create_prjForm()
         {
@@ -83,5 +85,25 @@ namespace NetProbe
                 textBoxFile.Text = PrjFileDialog.FileName;
             }
         }
+
+        private void textBoxName_TextChanged(object sender, EventArgs e)
+        {
+            //Counts how many times the entered name starts with any of the characters
+            //from a to z or A to Z
+            //NameErrCount Should be 1 if Name beginning is correct and 0 if not
+            NameErrCount = Regex.Matches(textBoxName.Text, @"^[a-zA-Z]").Count;
+
+            if (textBoxName.Text.Contains(" ") || (NameErrCount == 0 && textBoxName.Text != ""))
+            {
+                nameErr.Show();
+                textBoxName.BackColor = Color.LightCoral;
+            }
+            else
+            {
+                nameErr.Hide();
+                textBoxName.BackColor = Color.LightGreen;
+            }
+        }
+
     }
 }
