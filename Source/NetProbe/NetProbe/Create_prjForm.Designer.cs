@@ -41,6 +41,7 @@
             this.btn_Create = new System.Windows.Forms.Button();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.PrjFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.nameErr = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // textBoxName
@@ -51,6 +52,7 @@
             this.textBoxName.Name = "textBoxName";
             this.textBoxName.Size = new System.Drawing.Size(228, 22);
             this.textBoxName.TabIndex = 0;
+            this.textBoxName.TextChanged += new System.EventHandler(this.textBoxName_TextChanged);
             // 
             // label1
             // 
@@ -161,6 +163,20 @@
             this.PrjFileDialog.FileName = "PrjFile";
             this.PrjFileDialog.RestoreDirectory = true;
             // 
+            // nameErr
+            // 
+            this.nameErr.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.nameErr.AutoSize = true;
+            this.nameErr.Font = new System.Drawing.Font("Alstom", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.nameErr.ForeColor = System.Drawing.Color.Red;
+            this.nameErr.Location = new System.Drawing.Point(39, 99);
+            this.nameErr.Name = "nameErr";
+            this.nameErr.Size = new System.Drawing.Size(478, 19);
+            this.nameErr.TabIndex = 11;
+            this.nameErr.Text = "Project name should neither start with special character nor contain any space";
+            this.nameErr.Visible = false;
+            // 
             // Create_prjForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -169,6 +185,7 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(585, 341);
+            this.Controls.Add(this.nameErr);
             this.Controls.Add(this.btn_Create);
             this.Controls.Add(this.btn_Return);
             this.Controls.Add(this.label3);
@@ -206,5 +223,6 @@
         private System.Windows.Forms.Button btn_Create;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
         private System.Windows.Forms.OpenFileDialog PrjFileDialog;
+        private System.Windows.Forms.Label nameErr;
     }
 }
