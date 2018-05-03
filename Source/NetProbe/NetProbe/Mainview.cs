@@ -17,7 +17,7 @@ namespace NetProbe
         {
             InitializeComponent();
         }
-
+       
         private void Mainview_Load(object sender, EventArgs e)
         {
             MdiClient chld;
