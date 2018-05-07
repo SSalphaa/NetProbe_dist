@@ -69,9 +69,6 @@ namespace NetProbe
                 {
                     //Start capturing the packets...
               
-                    btnConnect.Text = "Disconnect";
-
-                    bContinueCapturing = true;
                     
                     //WITHOUT SOCKETS, USING VS_LIBRARY
 
@@ -80,12 +77,15 @@ namespace NetProbe
                 }
                 else
                 {
-                    btnConnect.Text = "Connect";
-                    bContinueCapturing = false;
+                    
                     //To stop capturing the packets close the socket
                     
                     //mainSocket.Close(); 
                     control.disconnect();
+                    if (!control.isConnected()) {
+                        btnConnect.Text = "Connect";
+                        bContinueCapturing = false;
+                    }
                 }
             }
             catch (Exception ex)
@@ -107,7 +107,8 @@ namespace NetProbe
             {
                 ipAddr = nodeSelect.Text;
                 control.connect(ipAddr, 9090);
-                connectionOK = true;
+                
+                connectionOK = control.isConnected();
                 InformationMessage = null;
             }
             catch (Exception ex)
@@ -120,6 +121,10 @@ namespace NetProbe
 
             if (connectionOK)
             {
+                btnConnect.Text = "Disconnect";
+
+                bContinueCapturing = true;
+           
                 try
                 {
                     ///Récupération de toutes les variables U-test
@@ -176,7 +181,6 @@ namespace NetProbe
             long oldTimeStamp = oldDataObs.Timestamp;
             long timeStamp = 0;
             string value = "";
-            //vc = Vs.getVariableController();
             vc.getType(completeVariable, out typeVS);
             
 
@@ -184,16 +188,7 @@ namespace NetProbe
             if (importOk != 0 /*&& !oldDataObs.IsChanging*/)
             {
 
-                if (dObs.PathName.Contains("Int"))
-                {
-                    typeVS = 1;
-                }
-
-                if (dObs.PathName.Contains("Double"))
-                {
-                    typeVS = 2;
-                }
-                //MessageBox.Show("readValue : " + completeVariable + " TYPE " + Convert.ToString(typeVS) + " VC " + Convert.ToString(importOk), "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //vc.waitForConnection(completeVariable,500);
                 switch (typeVS)
                 {
                     ///=================================================================================================
@@ -206,8 +201,9 @@ namespace NetProbe
 
                         if (intr != null)
                         {
-                            intr.setBlocking(1 * 200);
-                            VariableState t = intr.waitForConnection();
+                            intr.setBlocking(1 * 20);
+                            //intr.waitForEventConnection();
+                            VariableState t = intr.waitForFirstValue();
 
                             if (t == VariableState.Ok)
                             {
@@ -228,8 +224,9 @@ namespace NetProbe
 
                         if (dblr != null)
                         {
-                            dblr.setBlocking(1 * 200);
-                            VariableState t = dblr.waitForConnection();
+                            dblr.setBlocking(1* 20);
+                            //dblr.waitForEventConnection();
+                            VariableState t = dblr.waitForFirstValue();
 
                             if (t == VariableState.Ok)
                             {
@@ -239,12 +236,12 @@ namespace NetProbe
                         }
                         break;
                     ///=================================================================================================
-                    /*
                     case 3:
                         break;
                     ///=================================================================================================
                     /// Si le type est égal à 4 alors c'est un Vector Integer (Tableau d'entier)
                     ///=================================================================================================
+                    /*
                     case 4:
                         dObs.Type = VS_Type.VECTOR_INTEGER;
                         VectorIntegerReader vecIntReader = vc.createVectorIntegerReader(completeVariable);
@@ -261,7 +258,8 @@ namespace NetProbe
                                 value = tableToString(valVarVecInt);
                             }
                         }
-                        break;*/
+                        break;
+                    */
                     ///=================================================================================================
                     default:
                         dObs.Type = VS_Type.INVALID;
@@ -290,7 +288,7 @@ namespace NetProbe
                 rootNode.Nodes.Add("Name : " + dObs.Variable);
                 rootNode.Nodes.Add("Value : " + dObs.Value);
                 rootNode.Nodes.Add("Type : " + dObs.Type);
-                rootNode.Nodes.Add("Timestamp : " + dObs.Timestamp);
+                rootNode.Nodes.Add("Timestamp : " + createDateTime(dObs.Timestamp));
                     
                 AddTreeNode addTreeNode = new AddTreeNode(OnAddTreeNode);
                     
