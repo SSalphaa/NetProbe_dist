@@ -5,8 +5,14 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using System.Net.Sockets;
+//using System.Net.Sockets;
 using System.Net;
+using U_TEST;
+using VS;
+using System.Collections;
+using System.Linq;
+//using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 
 namespace NetProbe
 {
@@ -17,18 +23,38 @@ namespace NetProbe
         Unknown = -1
     }
 
-    public partial class Dashboard : Form
+    public partial class Dashboard : Form, INotifyPropertyChanged//, IEqualityComparer<DataObserver>
     {
-        private Socket mainSocket;                          //The socket which captures all incoming packets
-        private byte[] byteData = new byte[4096];
+        //VS.Vs.getVariableController().createVariable("Test",VS.VS_Type.INTEGER);
+
         private bool bContinueCapturing = false;            //A flag to check if packets are being captured or not
 
+        private string ipAddr;
+        private Dictionary<string, string> dic;
+        VariableController vc;
+        private bool connectionOK;
+        private string _infoMsg;
+        private ObservableCollection<DataObserver> _listOfDataObserver;
+        private const string INFORMATION_MSG = "InformationMessage";
+        public int  incr=0;
         private delegate void AddTreeNode(TreeNode node);
+        IControl control = IControl.create();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            if (this.PropertyChanged != null)
+                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+
+        }
+
 
         public Dashboard()
         {
             InitializeComponent();
         }
+
         private void btnConnect_Click(object sender, EventArgs e)
         {
             if(nodeSelect.Text == "")
@@ -46,38 +72,20 @@ namespace NetProbe
                     btnConnect.Text = "Disconnect";
 
                     bContinueCapturing = true;
+                    
+                    //WITHOUT SOCKETS, USING VS_LIBRARY
 
-                    //To sniff the packets, the socket has to be a raw socket, with the
-                    //address family being of type internetwork, and protocol being IP
-                    mainSocket = new Socket(AddressFamily.InterNetwork,
-                        SocketType.Raw, ProtocolType.IP);
+                    loadVariableList();
 
-                    //Bind the socket to the selected IP address in the combobox
-                    mainSocket.Bind(new IPEndPoint(IPAddress.Parse(nodeSelect.Text), 0));
-
-                    //Set the socket  options
-                    mainSocket.SetSocketOption(SocketOptionLevel.IP,            //Applies only to IP packets
-                                               SocketOptionName.HeaderIncluded, //Set the include the header
-                                               true);                           //option to true
-
-                    byte[] byTrue = new byte[4] { 1, 0, 0, 0 };
-                    byte[] byOut = new byte[4] { 1, 0, 0, 0 }; //Capture outgoing packets
-
-                    //Activation of the reception of all packets on the selected network, the user has to be an administrator on
-                    mainSocket.IOControl(IOControlCode.ReceiveAll,              //the local machine                                         
-                                         byTrue,
-                                         byOut);
-
-                    //Start receiving the packets asynchronously
-                    mainSocket.BeginReceive(byteData, 0, byteData.Length, SocketFlags.None,
-                        new AsyncCallback(OnReceive), null);
                 }
                 else
                 {
                     btnConnect.Text = "Connect";
                     bContinueCapturing = false;
                     //To stop capturing the packets close the socket
-                    mainSocket.Close();
+                    
+                    //mainSocket.Close(); 
+                    control.disconnect();
                 }
             }
             catch (Exception ex)
@@ -85,154 +93,249 @@ namespace NetProbe
                 MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void OnReceive(IAsyncResult ar)
-        {
+
+        public void loadVariableList() {
+
+            //On crée un dictionnaire qui va contenir le chemin + nom (clé unique) et le mapping associé
+            dic = new Dictionary<string, string>();
+
+            vc = Vs.getVariableController();
+            
+            _listOfDataObserver = new ObservableCollection<DataObserver>();
+
             try
             {
-                if (bContinueCapturing)
-                {
-                    int nReceived = mainSocket.EndReceive(ar); //The number of bytes received in the socket
-                    //Analyze the received packet...
-                    ParseData(byteData, nReceived);
-
-                    byteData = new byte[4096];
-                    //Another call to BeginReceive to pursue receiving the incoming packets while the 
-                    //received one is being parsed
-                    mainSocket.BeginReceive(byteData, 0, byteData.Length, SocketFlags.None,
-                        new AsyncCallback(OnReceive), null);
-                }
+                ipAddr = nodeSelect.Text;
+                control.connect(ipAddr, 9090);
+                connectionOK = true;
+                InformationMessage = null;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //Connexion impossible
+                connectionOK = false;
+                InformationMessage = "Connection to RTC server isn't possible !";
+                MessageBox.Show(InformationMessage+"\n"+ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-        private void ParseData(byte[] byteData, int nReceived)
-        {
-            TreeNode rootNode = new TreeNode();
 
-            //Since all protocol packets are encapsulated in the IP datagram,
-            //we start parsing the IP header and see what protocol data is being carried by it.
-            IPHeader ipHeader = new IPHeader(byteData, nReceived);
-
-            TreeNode ipNode = MakeIPTreeNode(ipHeader);
-            rootNode.Nodes.Add(ipNode);
-
-            //Now according to the protocol being carried by the IP datagram we parse 
-            //the data field of the datagram.
-            //For instance we will focus on TCP Protocol as it is the one used by VS in U-Test
-            switch (ipHeader.ProtocolType)
+            if (connectionOK)
             {
-                case Protocol.TCP:
+                try
+                {
+                    ///Récupération de toutes les variables U-test
+                    NameList listeUT = control.getVariableList();
 
-                    TCPHeader tcpHeader = new TCPHeader(ipHeader.Data,              //IPHeader.Data stores the data being 
-                                                                                    //carried by the IP datagram
-                                                        ipHeader.MessageLength); //Length of the data field                    
-
-                    TreeNode tcpNode = MakeTCPTreeNode(tcpHeader);
-
-                    rootNode.Nodes.Add(tcpNode);
-
-                    break;
-                case Protocol.Unknown:
-                    break;
+                    if (listeUT.size() > 0)
+                    {
+                        for (int i = 0; i < listeUT.size(); i++)
+                        {
+                            ///Si la clé primaire existe déjà dans le dictionnaire alors on rajoute le mapping
+                            ///Si elle n'existe pas on met un mapping vide
+                            if (!dic.ContainsKey(listeUT.get(i)))
+                            {
+                                _listOfDataObserver.Add(createDataObserver(listeUT.get(i), "", VS_Type.INVALID, 0, "", false));
+                            }
+                            else
+                            {
+                                _listOfDataObserver.Add(createDataObserver(listeUT.get(i), "", VS_Type.INVALID, 0, dic[listeUT.get(i)].ToString(), false));
+                            }
+                        }
+                    }
+                    
+                    foreach (DataObserver DaObs in _listOfDataObserver)
+                    {
+                        readValue3(DaObs);
+                    }
+                }
+                catch (Exception e)
+                {
+                    InformationMessage = "Impossible to get the list of variables !\n" + e.ToString();
+                    MessageBox.Show(InformationMessage + "\n" + e.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-
-            AddTreeNode addTreeNode = new AddTreeNode(OnAddTreeNode);
-
-            rootNode.Text = ipHeader.SourceAddress.ToString() + "-" + //Setting the Text for the rootnode (datagram node)
-            ipHeader.DestinationAddress.ToString();
-
-            //Thread safe adding of the nodes
-            treeView1.Invoke(addTreeNode, new object[] { rootNode });
         }
 
-        //Function which returns the information contained in the IP header as a
-        //tree node
-        private TreeNode MakeIPTreeNode(IPHeader ipHeader)
+        public string createDateTime(long timeStamp)
         {
-            TreeNode ipNode = new TreeNode();
-            //For readability purposes, some fields are masked at execution
-            ipNode.Text = "IP";
-            ipNode.Nodes.Add("Ver: " + ipHeader.Version);
-            ipNode.Nodes.Add("Header Length: " + ipHeader.HeaderLength);
-            //ipNode.Nodes.Add ("Differntiated Services: " + ipHeader.DifferentiatedServices);
-            ipNode.Nodes.Add("Total Length: " + ipHeader.TotalLength);
-            //ipNode.Nodes.Add("Identification: " + ipHeader.Identification);
-            ipNode.Nodes.Add("Flags: " + ipHeader.Flags);
-            // ipNode.Nodes.Add("Fragmentation Offset: " + ipHeader.FragmentationOffset);
-            //ipNode.Nodes.Add("Time to live: " + ipHeader.TTL);
-            switch (ipHeader.ProtocolType)
+            return getDateTimeWithLong(timeStamp).ToString();
+        }
+        public DateTime getDateTimeWithLong(long timeStamp)
+        {
+            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            long ts = (timeStamp / 1000) + (2 * 360 * 10000);
+            dtDateTime = dtDateTime.AddMilliseconds(ts);
+            return dtDateTime;
+        }
+
+        private DataObserver readValue3(DataObserver oldDataObs)
+        {
+            DataObserver dObs = oldDataObs;
+            string completeVariable = oldDataObs.PathName;
+            int importOk = vc.importVariable(completeVariable);
+            int typeVS = -1;
+            long oldTimeStamp = oldDataObs.Timestamp;
+            long timeStamp = 0;
+            string value = "";
+            //vc = Vs.getVariableController();
+            vc.getType(completeVariable, out typeVS);
+            
+
+
+            if (importOk != 0 /*&& !oldDataObs.IsChanging*/)
             {
-                case Protocol.TCP:
-                    ipNode.Nodes.Add("Protocol: " + "TCP");
-                    break;
-                case Protocol.UDP:
-                    ipNode.Nodes.Add("Protocol: " + "UDP");
-                    break;
-                case Protocol.Unknown:
-                    ipNode.Nodes.Add("Protocol: " + "Unknown");
-                    break;
+
+                if (dObs.PathName.Contains("Int"))
+                {
+                    typeVS = 1;
+                }
+
+                if (dObs.PathName.Contains("Double"))
+                {
+                    typeVS = 2;
+                }
+                //MessageBox.Show("readValue : " + completeVariable + " TYPE " + Convert.ToString(typeVS) + " VC " + Convert.ToString(importOk), "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                switch (typeVS)
+                {
+                    ///=================================================================================================
+                    /// Si le type est égal à 1 alors c'est un entier
+                    ///=================================================================================================
+                    case 1:
+                        dObs.Type = VS_Type.INTEGER;
+                        IntegerReader intr = vc.createIntegerReader(completeVariable);
+                        int valVarInt;
+
+                        if (intr != null)
+                        {
+                            intr.setBlocking(1 * 200);
+                            VariableState t = intr.waitForConnection();
+
+                            if (t == VariableState.Ok)
+                            {
+                                intr.get(out valVarInt, out timeStamp);
+                                value = valVarInt.ToString();
+                            }
+                        }
+
+                        break;
+                    ///=================================================================================================
+                    ///=================================================================================================
+                    /// Si le type est égal à 2 alors c'est un double
+                    ///=================================================================================================
+                    case 2:
+                        dObs.Type = VS_Type.DOUBLE;
+                        DoubleReader dblr = vc.createDoubleReader(completeVariable);
+                        double valVarDbl;
+
+                        if (dblr != null)
+                        {
+                            dblr.setBlocking(1 * 200);
+                            VariableState t = dblr.waitForConnection();
+
+                            if (t == VariableState.Ok)
+                            {
+                                dblr.get(out valVarDbl, out timeStamp);
+                                value = valVarDbl.ToString();
+                            }
+                        }
+                        break;
+                    ///=================================================================================================
+                    /*
+                    case 3:
+                        break;
+                    ///=================================================================================================
+                    /// Si le type est égal à 4 alors c'est un Vector Integer (Tableau d'entier)
+                    ///=================================================================================================
+                    case 4:
+                        dObs.Type = VS_Type.VECTOR_INTEGER;
+                        VectorIntegerReader vecIntReader = vc.createVectorIntegerReader(completeVariable);
+                        IntegerVector valVarVecInt = new IntegerVector();
+
+                        if (vecIntReader != null)
+                        {
+                            vecIntReader.setBlocking(1 * 200);
+                            VariableState t = vecIntReader.waitForConnection();
+
+                            if (t == VariableState.Ok)
+                            {
+                                vecIntReader.get(valVarVecInt, out timeStamp);
+                                value = tableToString(valVarVecInt);
+                            }
+                        }
+                        break;*/
+                    ///=================================================================================================
+                    default:
+                        dObs.Type = VS_Type.INVALID;
+                        value = "Undefined";
+                        break;
+                    
+                }
+
+                if (!oldDataObs.Value.Equals(value))
+                {
+                    dObs.Value = value;
+                    dObs.ValueHasChanged = true;
+                }
+                else
+                {
+                    dObs.ValueHasChanged = false;
+                }
+                dObs.Timestamp = timeStamp;
+                //dObs.WhenUpdated = howManyTime(oldTimeStamp, dObs.Timestamp);
+                dObs.WhenUpdated = createDateTime(dObs.Timestamp);
+                
+                if(dObs.PathName.StartsWith("Group1/")){
+
+                TreeNode rootNode = new TreeNode();
+
+                rootNode.Nodes.Add("Name : " + dObs.Variable);
+                rootNode.Nodes.Add("Value : " + dObs.Value);
+                rootNode.Nodes.Add("Type : " + dObs.Type);
+                rootNode.Nodes.Add("Timestamp : " + dObs.Timestamp);
+                    
+                AddTreeNode addTreeNode = new AddTreeNode(OnAddTreeNode);
+                    
+                rootNode.Text = "Variable " + Convert.ToString(incr);
+
+                //Thread safe adding of the nodes
+                treeView1.Invoke(addTreeNode, new object[] { rootNode });
+
+                incr++;
+                }
+                
             }
-            //ipNode.Nodes.Add("Checksum: " + ipHeader.Checksum);
-            ipNode.Nodes.Add("Source: " + ipHeader.SourceAddress.ToString());
-            ipNode.Nodes.Add("Destination: " + ipHeader.DestinationAddress.ToString());
-            ipNode.Nodes.Add("Data: " + extractIPData(ipHeader));
 
-            return ipNode;
-        }
-        //Function which returns the information contained in the TCP header as a
-        //tree node
-        private TreeNode MakeTCPTreeNode(TCPHeader tcpHeader)
-        {
-            TreeNode tcpNode = new TreeNode();
-
-            tcpNode.Text = "TCP";
-            //For readability purposes, some fields are masked at execution
-            tcpNode.Nodes.Add("Source Port: " + tcpHeader.SourcePort);
-            tcpNode.Nodes.Add("Destination Port: " + tcpHeader.DestinationPort);
-            //tcpNode.Nodes.Add("Sequence Number: " + tcpHeader.SequenceNumber);
-
-            if (tcpHeader.AcknowledgementNumber != "")
-                tcpNode.Nodes.Add("Acknowledgement Number: " + tcpHeader.AcknowledgementNumber);
-
-            tcpNode.Nodes.Add("Header Length: " + tcpHeader.HeaderLength);
-            tcpNode.Nodes.Add("Flags: " + tcpHeader.Flags);
-            tcpNode.Nodes.Add("Window Size: " + tcpHeader.WindowSize);
-            //tcpNode.Nodes.Add("Checksum: " + tcpHeader.Checksum);
-
-            //if (tcpHeader.UrgentPointer != "")
-            //    tcpNode.Nodes.Add("Urgent Pointer: " + tcpHeader.UrgentPointer);
-            tcpNode.Nodes.Add("Data: " + extractTCPData(tcpHeader));
-
-            return tcpNode;
-        }
-
-        //Function to extract the data from the IP Data bytes Array and converting them into String
-        private string extractIPData(IPHeader ipHeader)
-        {
-            String Data = null;
-            for (int i = 0; i < ipHeader.MessageLength; i += 1)
-            {
-                Data += ipHeader.Data[i];
-            }
-            return Data;
-        }
-        //Function to the data from the TCP Data bytes Array and converting them into String
-        private string extractTCPData(TCPHeader tcpHeader)
-        {
-            String Data = null;
-            for (int i = 0; i < tcpHeader.MessageLength; i += 1)
-            {
-                Data += tcpHeader.Data[i];
-            }
-            return Data;
+            return dObs;
         }
 
         private void OnAddTreeNode(TreeNode node)
         {
             treeView1.Nodes.Add(node);
         }
+
+        public string InformationMessage
+        {
+            get { return _infoMsg; }
+            set { _infoMsg = value; OnPropertyChanged(INFORMATION_MSG); }
+        }
+
+        private DataObserver createDataObserver(string path, string value, VS_Type type, long timeStamp, string mapping, bool forced)
+        {
+            DataObserver dObs = new DataObserver
+            {
+                PathName = path,
+                Path = System.IO.Path.GetDirectoryName(path).Replace("\\", "/"),
+                Variable = System.IO.Path.GetFileName(path),
+                Value = value,
+                Type = type,
+                Mapping = mapping,
+                IsForced = forced,
+                Timestamp = timeStamp
+            };
+
+            return dObs;
+        }
+        
+ 
         //As long as the Dashboard is active, we look after active IP nodes and insert them in the combo box
         private void Dashboard_Activate(object sender, EventArgs e)
         { 
@@ -262,7 +365,7 @@ namespace NetProbe
                 if (bContinueCapturing)
                 {
                     //Close the socket if not closed before shutting off the execution window
-                    mainSocket.Close();
+                    control.disconnect();
                 }
                 //Search for active form (Parent Form : Mainview)
                 Form m = Form.ActiveForm;
@@ -278,9 +381,5 @@ namespace NetProbe
                 e.Cancel = true;
         }
 
-        private void Dashboard_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }
