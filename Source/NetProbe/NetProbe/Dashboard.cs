@@ -13,6 +13,7 @@ using System.Collections;
 using System.Linq;
 //using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace NetProbe
 {
@@ -27,8 +28,8 @@ namespace NetProbe
     {
         //VS.Vs.getVariableController().createVariable("Test",VS.VS_Type.INTEGER);
 
-        private bool bContinueCapturing = false;            //A flag to check if packets are being captured or not
-
+        private bool recall = false;            //A flag to check if variables are being loaded or not
+        private bool enableConn = true;
         private string ipAddr;
         private Dictionary<string, string> dic;
         VariableController vc;
@@ -36,7 +37,7 @@ namespace NetProbe
         private string _infoMsg;
         private ObservableCollection<DataObserver> _listOfDataObserver;
         private const string INFORMATION_MSG = "InformationMessage";
-        public int  incr=0;
+        //public int  incr=0;
         private delegate void AddTreeNode(TreeNode node);
         IControl control = IControl.create();
 
@@ -65,15 +66,17 @@ namespace NetProbe
             }
             try
             {
-                if (!bContinueCapturing)
+                if (enableConn)
                 {
                     //Start capturing the packets...
-              
-                    
+
+
                     //WITHOUT SOCKETS, USING VS_LIBRARY
-
-                    loadVariableList();
-
+                    connectUtest();
+                    if (connectionOK)
+                    {
+                        btnRefresh.Enabled = true;
+                    }
                 }
                 else
                 {
@@ -84,7 +87,8 @@ namespace NetProbe
                     control.disconnect();
                     if (!control.isConnected()) {
                         btnConnect.Text = "Connect";
-                        bContinueCapturing = false;
+                        enableConn = true;
+                        btnRefresh.Enabled = false;
                     }
                 }
             }
@@ -92,6 +96,27 @@ namespace NetProbe
             {
                 MessageBox.Show(ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        public void connectUtest()
+        {
+            try
+            {
+                ipAddr = nodeSelect.Text;
+                control.connect(ipAddr, 9090);
+
+                connectionOK = control.isConnected();
+                InformationMessage = null;
+            }
+            catch (Exception ex)
+            {
+                //Connexion impossible
+                connectionOK = false;
+                InformationMessage = "Connection to RTC server isn't possible !";
+                MessageBox.Show(InformationMessage + "\n" + ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            loadVariableList();
         }
 
         public void loadVariableList() {
@@ -103,28 +128,13 @@ namespace NetProbe
             
             _listOfDataObserver = new ObservableCollection<DataObserver>();
 
-            try
-            {
-                ipAddr = nodeSelect.Text;
-                control.connect(ipAddr, 9090);
-                
-                connectionOK = control.isConnected();
-                InformationMessage = null;
-            }
-            catch (Exception ex)
-            {
-                //Connexion impossible
-                connectionOK = false;
-                InformationMessage = "Connection to RTC server isn't possible !";
-                MessageBox.Show(InformationMessage+"\n"+ex.Message, "NetProbe", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            connectionOK = control.isConnected();
 
             if (connectionOK)
             {
                 btnConnect.Text = "Disconnect";
-
-                bContinueCapturing = true;
-           
+                enableConn = false;
+                          
                 try
                 {
                     ///Récupération de toutes les variables U-test
@@ -146,11 +156,8 @@ namespace NetProbe
                             }
                         }
                     }
-                    
-                    foreach (DataObserver DaObs in _listOfDataObserver)
-                    {
-                        readValue3(DaObs);
-                    }
+                   
+                   refreshValues();
                 }
                 catch (Exception e)
                 {
@@ -159,14 +166,32 @@ namespace NetProbe
                 }
             }
         }
+        public void refreshValues()
+        {
+            ObservableCollection<DataObserver> oldList = _listOfDataObserver;
+
+            foreach (DataObserver Obs in oldList)
+            {
+                if (Obs == oldList.Last())
+                    recall = true;
+                else
+                    recall = false;
+
+                readValue3(Obs);
+                
+            }
+        }
 
         public string createDateTime(long timeStamp)
         {
-            return getDateTimeWithLong(timeStamp).ToString();
+            string dateFormat = "MM/dd/yyyy HH:mm:ss:fff";
+
+            return getDateTimeWithLong(timeStamp).ToString(dateFormat).Remove(0,11);
         }
+
         public DateTime getDateTimeWithLong(long timeStamp)
         {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Local);
             long ts = (timeStamp / 1000) + (2 * 360 * 10000);
             dtDateTime = dtDateTime.AddMilliseconds(ts);
             return dtDateTime;
@@ -183,11 +208,10 @@ namespace NetProbe
             string value = "";
             vc.getType(completeVariable, out typeVS);
             
-
-
+           
+            
             if (importOk != 0 /*&& !oldDataObs.IsChanging*/)
             {
-
                 //vc.waitForConnection(completeVariable,500);
                 switch (typeVS)
                 {
@@ -218,6 +242,7 @@ namespace NetProbe
                     /// Si le type est égal à 2 alors c'est un double
                     ///=================================================================================================
                     case 2:
+
                         dObs.Type = VS_Type.DOUBLE;
                         DoubleReader dblr = vc.createDoubleReader(completeVariable);
                         double valVarDbl;
@@ -279,35 +304,46 @@ namespace NetProbe
                 }
                 dObs.Timestamp = timeStamp;
                 //dObs.WhenUpdated = howManyTime(oldTimeStamp, dObs.Timestamp);
-                dObs.WhenUpdated = createDateTime(dObs.Timestamp);
-                
-                if(dObs.PathName.StartsWith("Group1/")){
-
-                TreeNode rootNode = new TreeNode();
-
-                rootNode.Nodes.Add("Name : " + dObs.Variable);
-                rootNode.Nodes.Add("Value : " + dObs.Value);
-                rootNode.Nodes.Add("Type : " + dObs.Type);
-                rootNode.Nodes.Add("Timestamp : " + createDateTime(dObs.Timestamp));
-                    
-                AddTreeNode addTreeNode = new AddTreeNode(OnAddTreeNode);
-                    
-                rootNode.Text = "Variable " + Convert.ToString(incr);
-
-                //Thread safe adding of the nodes
-                treeView1.Invoke(addTreeNode, new object[] { rootNode });
-
-                incr++;
-                }
-                
+                dObs.WhenUpdated = createDateTime(dObs.Timestamp); 
             }
-
+            displayValues(dObs);
             return dObs;
         }
 
-        private void OnAddTreeNode(TreeNode node)
+
+        private void displayValues(DataObserver dObs)
         {
-            treeView1.Nodes.Add(node);
+            bool RowExists = false;
+
+            if (dObs.PathName.StartsWith("Group1/")){
+
+                if (dObs.Type != VS_Type.INVALID)
+                {
+
+                    for (int j = 0; j < dataGridView1.Rows.Count; j++)
+                    {
+
+                        if (Convert.ToString(dataGridView1.Rows[j].Cells[0].Value) == dObs.Variable)
+                        {
+                            dataGridView1.Rows[j].Cells[1].Value = dObs.Value;
+                            dataGridView1.Rows[j].Cells[3].Value = createDateTime(dObs.Timestamp);
+                            RowExists = true;
+                            break;
+                        }
+                    };
+                    if (!RowExists)
+                    {
+                        string[] row = new string[] { dObs.Variable, dObs.Value, Convert.ToString(dObs.Type), createDateTime(dObs.Timestamp) };
+                        dataGridView1.Rows.Add(row);
+                    }
+                }
+                else
+                    readValue3(dObs);
+             }
+            /*if (recall) { 
+                System.Threading.Thread.Sleep(2000);
+                refreshValues();
+            }*/
         }
 
         public string InformationMessage
@@ -353,6 +389,7 @@ namespace NetProbe
             //As the list from the local host doesn't contain it's address, we give it manually
             //that's the one U-test uses
             nodeSelect.Items.Add("127.0.0.1");
+
         }
 
         private void Dashboard_FormClosing(object sender, CancelEventArgs e)
@@ -360,7 +397,7 @@ namespace NetProbe
             if(MessageBox.Show("You are about to close the Dashboard...Do you Confirm?", "NetProbe :: Dashboard",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                if (bContinueCapturing)
+                if (!enableConn)
                 {
                     //Close the socket if not closed before shutting off the execution window
                     control.disconnect();
@@ -377,6 +414,21 @@ namespace NetProbe
             }
             else
                 e.Cancel = true;
+        }
+
+        private void Dashboard_Load(object sender, EventArgs e)
+        {
+            dataGridView1.ColumnCount = 4;
+            dataGridView1.Columns[0].Name = "Variable Name";
+            dataGridView1.Columns[1].Name = "Value";
+            dataGridView1.Columns[2].Name = "Type";
+            dataGridView1.Columns[3].Name = "Timestamp";
+            btnRefresh.Enabled = false;
+        }
+
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            refreshValues();
         }
 
     }
