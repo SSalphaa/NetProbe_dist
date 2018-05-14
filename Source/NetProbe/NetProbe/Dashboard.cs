@@ -315,7 +315,7 @@ namespace NetProbe
         {
             bool RowExists = false;
 
-            if (dObs.PathName.StartsWith("Group1/")){
+           if (dObs.PathName.StartsWith("Group1/")){
 
                 if (dObs.Type != VS_Type.INVALID)
                 {
@@ -337,9 +337,8 @@ namespace NetProbe
                         dataGridView1.Rows.Add(row);
                     }
                 }
-                else
-                    readValue3(dObs);
-             }
+                
+            }
             /*if (recall) { 
                 System.Threading.Thread.Sleep(2000);
                 refreshValues();
